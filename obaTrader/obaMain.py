@@ -57,13 +57,6 @@ def generateSummaryonLOB(scheduler):
     
     writer.writerow([mp, tav, tbv, bc, ac, int(time.time())]) #array of veriables, not a dictionary
 
-# def do_something(scheduler):  
-#     scheduler.enter(3, 1, do_something, (scheduler,))  
-#     current_time = int(time.time())
-#     stringa = 'this'
-#     month = 'january'
-#     writer.writerow([current_time, stringa, month])
-
 today = date.today()
 filename = today.strftime("%Y-%m-%d")+ ".csv"
 with open(filename, mode='w', newline='') as csv_file:
