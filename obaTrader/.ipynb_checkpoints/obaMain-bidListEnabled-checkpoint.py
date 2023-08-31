@@ -48,8 +48,7 @@ def buildDecision(mp, tav, tbv, bc, ac, int(time.time()) ) :
     # integrate average change threshold, determine whether surge or precursor
     caps_df = capsFrame   
     lookback_period = 10 # in rows
-    caps_df['change'] = caps_df['mp'].pct_change(periods=lookback_period)
-    # caps_df.sample
+    caps_df['change'] = caps_df['mp'].pct_change(periods=lookback_period) #percent change in price, ident pre/sur
     print(caps_df.shape[0], caps_df.columns)# Calculate the returns of your asset over a fixed lookback period
     meanChange = round(caps_df['change'].mean(),8)
     # identify units of 10 rows where the percent change is greater or less than the threshold
