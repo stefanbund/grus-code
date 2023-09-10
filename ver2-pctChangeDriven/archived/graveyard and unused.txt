@@ -1,0 +1,65 @@
+# def getSKEWByDateAndType(type):  #returns a dict, date + df caps for that date, then extended date and time
+#                                 # print("for type, ", type)
+#     ret = []
+#     for root, dirs, files in os.walk("./lob_caps/"):
+#         for filename in files:
+#             if type in filename:
+# #                 print("CAPS file, ", filename) #mac, do find . -name ._\* -delete
+#                 ret.append(filename)
+#     return ret
+
+# csvFileList = getSKEWByDateAndType("MEANSHIFT") #iterate this array to dip into each csv, later on
+# li = []                         #form the endFrame / global data frame around this array
+# for filename in csvFileList:
+#     csv = "lob_caps/" + filename
+#     # print(csv)
+#     df = pd.read_csv(csv, index_col=None, header=0)
+#     li.append(df)
+
+# skewFrame = pd.concat(li, axis=0, ignore_index=True) #end frame contains all data
+# skewFrame.sort_values(by=['timeStamp'], ascending=True)   #sorted by time into one time series
+# skewFrame.rename(columns={'timeStamp': 'time'}, inplace=True)
+# print("for new df: ", skewFrame.shape[0])
+# start = skewFrame["time"].min()
+# end = skewFrame["time"].max()
+# print("start: ", start, " end: ", end)
+# print(skewFrame.columns)
+
+# Merging those two data frames Will not take place based on a Shared key of time
+# You'll need to look up the SKU value for every row based on approximation
+# merged_df = pd.merge(capsFrame, skewFrame, on='time')
+
+# skewFrame.head(10)
+# capsFrame.loc[capsFrame['time'].sub(skewFrame['time'].values[0]).abs().idxmin(), 'mean'] = skewFrame['mean'].values[0]
+# capsFrame.loc[capsFrame['time'].sub(skewFrame['time'].values[0]).abs().idxmin(), 'skew'] = skewFrame['skew'].values[0]
+# capsFrame.loc[capsFrame['time'].sub(skewFrame['time'].values[0]).abs().lt(pd.Timedelta(minutes=2)).idxmax(), 'mean'] = skewFrame['mean'].values[0]
+# 
+# Could not get this operation to work try it again using a range of values once the precursor and surge are defined
+
+# def surge_targets_met_pct(group):
+#     return (group['max_surge_mp'] / group['max_precursor_mp']) *100
+
+# # apply the custom function to the grouped dataframe and assign the resulting series to a new column in the original dataframe
+# sequence_df['surge_targets_met_pct'] = sequence_df.groupby(['type', 'group']).apply(surge_targets_met_pct).reset_index(level=[0,1], drop=True)
+# # def surge_targets_met_pct(group):
+#     return (group['max_surge_mp'] / group['max_precursor_mp']) *100
+
+# # apply the custom function to the grouped dataframe and assign the resulting series to a new column in the original dataframe
+# # grouped_df = sequence_df.groupby(['type', 'group'])
+
+# # apply the custom function to the grouped dataframe and assign the resulting series to a new column in the original dataframe
+# sequence_df['surge_targets_met_pct'] = grouped_df.apply(surge_targets_met_pct).reset_index(level=[0,1], drop=True)
+
+# # drop duplicate rows from the dataframe
+# sequence_df = sequence_df.drop_duplicates()
+
+# # perform the reindexing operation on the dataframe
+# sequence_df = sequence_df.reindex(['group', 'time', 's_MP', 'change', 'type', 
+#                  'length', 'sum_change', 'max_surge_mp', 
+#                  'min_surge_mp', 'area', 'surge_area',
+#                  'p_MP', 'precursor_buy_cap_pct_change',
+#                  'precursor_ask_cap_pct_change',
+#                  'precursor_bid_vol_pct_change',
+#                  'precursor_ask_vol_pct_change',
+#                  'max_precursor_mp', 
+#                  'min_precursor_mp'], axis=1)
