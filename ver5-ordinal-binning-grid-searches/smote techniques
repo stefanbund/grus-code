@@ -1,0 +1,116 @@
+# #set up toolsets as functions to build separate datasets, bin_Naive, bin_SMOTE, bin_ADASYN
+
+# def build_naive():  #https://imbalanced-learn.org/stable/over_sampling.html#naive-random-over-sampling
+#     ros = RandomOverSampler(random_state=42, sampling_strategy='minority')
+#     X_resampled, y_resampled = ros.fit_resample(X, y)
+#     print("ROS",sorted(Counter(y_resampled).items()))
+#     return X_resampled, y_resampled
+
+# def build_smote(): #https://imbalanced-learn.org/stable/references/generated/imblearn.over_sampling.SMOTE.html#smote
+#     X_resampled, y_resampled = SMOTE(random_state=42 ).fit_resample(X, y)
+#     print("SMOTE",sorted(Counter(y_resampled).items()))
+#     return X_resampled, y_resampled
+
+# def build_adasyn(): #https://imbalanced-learn.org/stable/references/generated/imblearn.over_sampling.ADASYN.html#adasyn
+#     X_resampled, y_resampled = ADASYN(random_state=42,sampling_strategy='minority').fit_resample(X, y)
+#     print("ADASYN",sorted(Counter(y_resampled).items()))
+#     return X_resampled, y_resampled
+
+# def build_borderline(): #https://imbalanced-learn.org/stable/references/generated/imblearn.over_sampling.BorderlineSMOTE.html#borderlinesmote
+#     X_resampled, y_resampled = BorderlineSMOTE(random_state=42,sampling_strategy='minority').fit_resample(X, y)
+#     print("BORDERLINE",sorted(Counter(y_resampled).items())) 
+#     return X_resampled, y_resampled
+
+# def build_smotenc(): #https://imbalanced-learn.org/stable/references/generated/imblearn.over_sampling.SMOTENC.html#smotenc
+#     smote_nc = SMOTENC( random_state=42,sampling_strategy='minority')
+#     X_resampled, y_resampled = smote_nc.fit_resample(X, y)
+#     print("SMOTENC",sorted(Counter(y_resampled).items()))
+#     return X_resampled, y_resampled
+
+# def build_svmsmote():
+#     sm = SVMSMOTE(random_state=42)
+#     X_res, y_res = sm.fit_resample(X, y)
+#     print("SVMSMOTE",'Resampled dataset shape %s' % Counter(y_res))
+#     return X_res, y_res
+
+# def build_kmsmote(): #https://imbalanced-learn.org/stable/combine.html#combination-of-over-and-under-sampling
+#     m = KMeansSMOTE( random_state=42,sampling_strategy='minority')
+#     X_res, y_res = m.fit_resample(X, y)
+#     # Find the number of new samples in the middle blob
+#     n_res_in_middle = ((X_res[:, 0] > -5) & (X_res[:, 0] < 5)).sum()
+#     print("KMSMOTE","Samples in the middle blob: %s" % n_res_in_middle)
+#     return X_res, y_res
+
+# def build_smoteenn():
+#     smote_enn = SMOTEENN(random_state=42,sampling_strategy='minority')
+#     X_resampled, y_resampled = smote_enn.fit_resample(X, y)
+#     print("SMOTEENN",sorted(Counter(y_resampled).items()))
+#     return X_resampled, y_resampled
+
+# def build_smotetomek():
+#     smote_tomek = SMOTETomek(random_state=42,sampling_strategy='minority')
+#     X_resampled, y_resampled = smote_tomek.fit_resample(X, y)
+#     print("SMOTETOMEK",sorted(Counter(y_resampled).items()))
+#     return X_resampled, y_resampled
+
+# def getBestClassifier(oversampler, dataset):   #'kmsmote', build_svmsmote(source)
+
+keepable = ['precursor_buy_cap_pct_change', 
+            'precursor_ask_cap_pct_change',
+            'precursor_bid_vol_pct_change', 
+            'precursor_ask_vol_pct_change',
+            'sum_change','length','time']
+
+y = m2_pipeline['label'].values #per https://stackoverflow.com/a/73095562/12001832
+X = m2_pipeline[keepable].values
+    
+X_resampled, y_resampled = ADASYN(random_state=42 ).fit_resample(X, y) #create synthetic classes
+
+X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
+
+scaler = StandardScaler()  #standardize all numerics
+X_train_scaled = scaler.fit_transform(X_train)
+
+X_test_scaled = scaler.fit_transform(X_test)
+
+classifiers = [  # Define the classifiers and their respective hyperparameters
+    LogisticRegression(),
+    BernoulliNB(),
+    KNeighborsClassifier(),
+]
+params = {
+    'LogisticRegression':{'C': [0.1, 1, 10], 'penalty':['l1','l2','elasticnet','None'], 'multi_class':['ovr','auto'],\
+                            'random_state':[42]},
+    'BernoulliNB':{'fit_prior':[True, False]},
+    'KNeighborsClassifier':{'n_neighbors':[3,4,5,6,7,8], 'algorithm':['auto'], 'n_jobs':[1,2,3,4]}
+}
+comparative = []
+# Perform the grid search
+for clf in classifiers:
+    name = clf.__class__.__name__
+    if name in params:
+        grid_search = GridSearchCV(clf, params[name], cv=5)
+        grid_search.fit(X_train_scaled, y_train)
+        
+        print(f"Best parameters for {name}: {grid_search.best_params_}")
+        accuracy = grid_search.score(X_test_scaled, y_test)
+        
+        dict = {"classifier":name, "best_params":grid_search.best_params_, "accuracy":accuracy}
+        comparative.append(dict)
+# return(comparative)
+
+
+
+# source = 'binary_binned_pipeline.csv'
+# resultSet = []
+# resultSet.append(getBestClassifier('naive', build_naive()))  #many rows
+# resultSet.append(getBestClassifier('smote', build_smote()))
+# resultSet.append(getBestClassifier('adasyn', build_adasyn()))
+# resultSet.append(getBestClassifier('borderline', build_borderline()))
+# # resultSet.append(getBestClassifier('smotenc', build_smotenc()))
+# resultSet.append(getBestClassifier('svmsmote', build_svmsmote()))
+# # resultSet.append(getBestClassifier('kmsmote', build_kmsmote()))
+# resultSet.append(getBestClassifier('smoteenn', build_smoteenn()))
+# resultSet.append(getBestClassifier('smotetomek', build_smotetomek()))
+
+optimals = pd.DataFrame(comparative)
