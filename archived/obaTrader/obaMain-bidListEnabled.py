@@ -110,7 +110,7 @@ def generateSummaryonLOB(scheduler):
     ac = round(sum_asks_cap(df_asks),3)
     mp = df_asks.iloc[0]['price']
     writer.writerow([mp, tav, tbv, bc, ac, int(time.time())]) #array of veriables, not a dictionary
-    buildDecision( mp, tav, tbv, bc, ac, int(time.time()) )
+    # buildDecision( mp, tav, tbv, bc, ac, int(time.time()) )
     
 today = date.today()
 filename = today.strftime("%Y-%m-%d")+ ".csv"
